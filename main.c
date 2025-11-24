@@ -15,11 +15,12 @@ int main(void) {
         return 1;
     }
 
-    db.tulajok = tulajd_bet(&db.tulaj_db);
-    if (!db.tulajok) {
-        printf("Nem sikerult betolteni a tulajdonosokat\n");
-        return 1;
-    }
+    // This would always fail if the list is empty (e.g. first use)
+    // db.tulajok = tulajd_bet(&db.tulaj_db);
+    // if (!db.tulajok) {
+    //     printf("Nem sikerult betolteni a tulajdonosokat\n");
+    //     return 1;
+    // }
 
     int valasztas;
     do {
