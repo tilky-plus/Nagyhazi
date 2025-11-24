@@ -696,15 +696,6 @@ static void levag_ujonsor(char *s) {
             
 
 
-
-                /*
-                 * Állat törlése vizsgálatokkal együtt:
-                 * - kérd be az állat ID-ját vagy nevét
-                 * - töröld az állatot az állatok listájából
-                 * - KERESD meg és töröld az összes hozzá tartozó vizsgálatot
-                 * - írd vissza az állat- és vizsgálatfájlt
-                 */
-                
             }
             case 0:
                 puts("Visszalépés a főmenübe...");
@@ -717,3 +708,4 @@ static void levag_ujonsor(char *s) {
 
     } while (valasztas != 0);
 }
+
