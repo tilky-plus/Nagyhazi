@@ -6,12 +6,7 @@
 #include "menu_tulaj.h"
 #include "tulaj_valaszto.h"
 #include "debugmalloc.h"
-
-static void levag_ujonsor(char *s) {
-    size_t n = strlen(s);
-    while (n && (s[n-1] == '\n' || s[n-1] == '\r'))
-        s[--n] = '\0';
-}
+#include "input.h"
 
 void menu_tulajdonosok(DB *db) {
     int valasztas;
@@ -26,44 +21,30 @@ void menu_tulajdonosok(DB *db) {
         printf("0) Vissza a fomenube\n");
         printf("Valasztas: ");
 
-        if (scanf("%d", &valasztas) != 1) {
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF) { }
-            continue;
-        }
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) { }
+        valasztas = input_number();
 
         switch (valasztas) {
+            case 0:
+                /* vissza a fomenube */
+                return;
+
             case 1: { /* Uj tulajdonos felvitele */
                 char nev[101], eler[101];
 
-                printf("Tulajdonos neve: ");
-                if (!fgets(nev, sizeof(nev), stdin)) {
-                    puts("Hiba");
-                    break;
-                }
-                levag_ujonsor(nev);
+                input_str("Tulajdonos neve: ", nev, sizeof(nev));
+
                 if (!nev[0]) {
                     puts("A nev nem lehet ures.");
                     break;
                 }
 
-                printf("Elerhetoseg: ");
-                if (!fgets(eler, sizeof(eler), stdin)) {
-                    puts("Hiba");
-                    break;
-                }
-                levag_ujonsor(eler);
+                input_str("Elerhetoseg: ", eler, sizeof(eler));
 
                 /* Kovetkezo ID */
-                int kov_id = (db->tulaj_db > 0)
-                           ? db->tulajok[db->tulaj_db - 1].id + 1
-                           : 1;
+                int kov_id = (db->tulaj_db > 0) ? db->tulajok[db->tulaj_db - 1].id + 1 : 1;
 
                 /* Tomb bovites es beszuras */
-                Owner *uj = realloc(db->tulajok,
-                                    (db->tulaj_db + 1) * sizeof(*db->tulajok));
+                Owner *uj = realloc(db->tulajok, (db->tulaj_db + 1) * sizeof(*db->tulajok));
                 if (!uj) {
                     puts("Memoria hiba.");
                     break;
@@ -91,12 +72,8 @@ void menu_tulajdonosok(DB *db) {
             case 2: { /* Tulajdonos keresese (nevreszletre) */
                 char minta[101];
 
-                printf("Keresett nev vagy nevreszlet: ");
-                if (!fgets(minta, sizeof(minta), stdin)) {
-                    puts("Beolvasasi hiba.");
-                    break;
-                }
-                levag_ujonsor(minta);
+                input_str("Keresett nev vagy nevreszlet: ", minta, sizeof(minta));
+
                 if (!minta[0]) {
                     puts("Ures szoveg, erre nem tudok rakeresni");
                     break;
@@ -147,23 +124,10 @@ void menu_tulajdonosok(DB *db) {
                        t->id, t->name, t->contact);
 
                 /* Mit modositunk? */
-                printf("Mit modositunk? 1) Nev  2) Elerhetoseg  (0 = megse): ");
-                int mit = 0;
-                if (scanf("%d", &mit) != 1) {
-                    int c2;
-                    while ((c2 = getchar()) != '\n' && c2 != EOF) {}
-                    puts("Beolvasasi hiba.");
-                    break;
-                }
-                int c2;
-                while ((c2 = getchar()) != '\n' && c2 != EOF) {}
-
-                if (mit == 0) {
-                    puts("Megse.");
-                    break;
-                }
+                printf("Mit modositunk? 1) Nev  2) Elerhetoseg  (0 = megsem): ");
+                int mit = input_number();
                 if (mit != 1 && mit != 2) {
-                    puts("Ervenytelen valasztas.");
+                    puts("Megsem.");
                     break;
                 }
 
@@ -174,11 +138,8 @@ void menu_tulajdonosok(DB *db) {
                 else
                     printf("Uj elerhetoseg: ");
 
-                if (!fgets(uj, sizeof(uj), stdin)) {
-                    puts("Hiba.");
-                    break;
-                }
-                levag_ujonsor(uj);
+                input_str(NULL, uj, sizeof(uj));
+
                 if (mit == 1 && !uj[0]) {
                     puts("A nev nem lehet ures.");
                     break;
@@ -200,16 +161,7 @@ void menu_tulajdonosok(DB *db) {
                 printf("\n--- Elonezet (mentes elott) ---\n");
                 printf("%d;%s;%s\n", id, nev_buf, eler_buf);
 
-                /* Megerosites */
-                char valasz[8];
-                printf("Biztosan modositod? (I/N): ");
-                if (!fgets(valasz, sizeof(valasz), stdin)) {
-                    puts("Megszakitva");
-                    break;
-                }
-                levag_ujonsor(valasz);
-                if (!(valasz[0] == 'I' || valasz[0] == 'i')) {
-                    puts("Megse");
+                if (!simple_yesno("Biztosan modositod?")) {
                     break;
                 }
 
@@ -254,17 +206,8 @@ void menu_tulajdonosok(DB *db) {
                 printf("\nTorolni keszulod a kovetkezot:\n");
                 printf("%d;%s;%s\n", t->id, t->name, t->contact);
 
-                char valasz[8];
-                printf("Biztosan toroljem? (I/N): ");
-                if (!fgets(valasz, sizeof(valasz), stdin)) {
-                    puts("Megszakitva.");
+                if (!simple_yesno("Biztosan toroljem?"))
                     break;
-                }
-                levag_ujonsor(valasz);
-                if (!(valasz[0] == 'I' || valasz[0] == 'i')) {
-                    puts("Megse.");
-                    break;
-                }
 
                 /* Elem kitorlese a dinamikus tombbol: elcsusztatjuk a hatso elemeket */
                 for (int i = idx; i < db->tulaj_db - 1; ++i) {
@@ -300,10 +243,6 @@ void menu_tulajdonosok(DB *db) {
                 puts("Torles kesz.");
                 break;
             }
-
-            case 0:
-                /* vissza a fomenube */
-                return;
 
             default:
                 printf("Ervenytelen valasztas.\n");
