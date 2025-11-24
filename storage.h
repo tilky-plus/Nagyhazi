@@ -9,6 +9,4 @@
 #define FILE_AL  "allatok.txt"
 #define FILE_LAT "vizsgalatok.txt"
 
-bool init_files(void);
-
 #endif

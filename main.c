@@ -10,18 +10,6 @@ int main(void) {
     db.tulajok = NULL;
     db.tulaj_db = 0;
 
-    if (!init_files()) {
-        printf("Hiba a fajlok beolvasasakor\n");
-        return 1;
-    }
-
-    // This would always fail if the list is empty (e.g. first use)
-    // db.tulajok = tulajd_bet(&db.tulaj_db);
-    // if (!db.tulajok) {
-    //     printf("Nem sikerult betolteni a tulajdonosokat\n");
-    //     return 1;
-    // }
-
     int valasztas;
     do {
         printf("\n=== Fomenu ===\n");
