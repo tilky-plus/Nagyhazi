@@ -48,16 +48,16 @@ static void levag_ujonsor(char *s) {
         switch (valasztas) {
             /* Új állat felvétele */
             case 1:
-                if (!db || db->tulaj_db == 0){
+                if (!db || db->owner_cnt == 0){
                     puts("Nincs egy tulajdonos sem a rendszerben, először vegyél fel tulajdonost");
                     break;
                 }
                 /* Tulaj kiválasztása*/
-                int idx = valassz_tulaj(db);
+                int idx = choose_owner(db);
                 if (idx < 0){
                     break;
                 }
-                Owner *tulaj = &db->tulajok[idx];
+                Owner *tulaj = &db->owners[idx];
                 printf("Kivalasztott tulajdonos: %s; %s\n", tulaj->name, tulaj->contact);
 
                 /* Állatok beolvasása file-ból */
@@ -177,8 +177,8 @@ static void levag_ujonsor(char *s) {
             case 2:
                 /* Állat adatainak módosítása */
                 /* Állatok beolvasása */
-                int allat_db = 0;
-                Animal *allatok = allat_bet(&allat_db);
+                allat_db = 0;
+                allatok = allat_bet(&allat_db);
                 if(!allatok && allat_db > 0) {
                     puts("Nem sikerult beolasni az allatokat.");
                     break;
@@ -205,14 +205,14 @@ static void levag_ujonsor(char *s) {
                 int darab = 0;
                 for (int i = 0; i < allat_db; ++i) {
                     if (strstr(allatok[i].nev, minta) != NULL) {
-                            printf("%d) ID=%d; TulajID=%d; %s; %s; %s; %s\n",
-                                ++darab,
-                                allatok[i].id,
-                                allatok[i].owner_id,
-                                allatok[i].nev,
-                                allatok[i].fajta,
-                                allatok[i].szul,
-                                allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)");
+                        printf("%d) ID=%d; TulajID=%d; %s; %s; %s; %s\n",
+                            ++darab,
+                            allatok[i].id,
+                            allatok[i].owner_id,
+                            allatok[i].nev,
+                            allatok[i].fajta,
+                            allatok[i].szul,
+                            allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)");
                     }
                 }
                 if (darab == 0){
@@ -242,7 +242,7 @@ static void levag_ujonsor(char *s) {
                     break;
                 }
 
-                int idx = -1;
+                idx = -1;
                 int sorszam = 0;
                 for (int i = 0; i < allat_db; ++i){
                     if(strstr(allatok[i].nev, minta) != NULL){
@@ -258,7 +258,7 @@ static void levag_ujonsor(char *s) {
                     free(allatok);
                     break;
                 }
-                
+
                 /* Az allatok[idx] lesz a módosítandó sor*/
                 Animal *a = &allatok[idx];
 
@@ -268,7 +268,7 @@ static void levag_ujonsor(char *s) {
                     a->fajta,
                     a->szul,
                     a->oltas[0] ? a->oltas : "(nincs oltas)");
-                
+
                 /* MIt módosítunk? */
                 printf("Mit modositunk?\n");
                 printf("1) Nev\n");
@@ -298,7 +298,7 @@ static void levag_ujonsor(char *s) {
                     free(allatok);
                     break;
                 }
-                
+
                 /* Új adat megadása */
                 char uj[101];
                 if (mit == 1)
@@ -307,9 +307,9 @@ static void levag_ujonsor(char *s) {
                     printf("Uj fajta: ");
                 else if (mit == 3)
                     printf("Uj szuletesi datum (EEEE-HH-NN): ");
-                else 
+                else
                     printf("Uj utolso oltas datuma (EEEE-HH-NN) vagy ures sor: ");
-                
+
                 if(!fgets(uj, sizeof(uj), stdin)){
                     puts("Beolvasasi hiba. ");
                     free(allatok);
@@ -326,7 +326,7 @@ static void levag_ujonsor(char *s) {
                 char fajta_pre[51];
                 char szul_pre[11];
                 char oltas_pre[11];
-                
+
                 /* preview */
                 printf("\n--- Elonezet (mentes elott) ---\n");
                 printf("%s; ", (mit == 1) ? uj : a->nev);
@@ -371,9 +371,9 @@ static void levag_ujonsor(char *s) {
                     else
                         a->oltas[0] = '\0';
                 }
-                
+
                 /* Teljes állatzfile újraírása */
-                FILE *fp = fopen(FILE_AL, "w");
+                fp = fopen(FILE_AL, "w");
                 if (!fp) {
                     puts("Nem sikerult megnyitni az allatok fajlt irasra.");
                     free(allatok);
@@ -395,22 +395,22 @@ static void levag_ujonsor(char *s) {
 
                 puts("Modositas kesz.");
                 break;
-                
-          
-            case 3:{ 
-                if (!db || db->tulaj_db == 0) {
-                puts("Nincs egy tulajdonos sem a rendszerben, elobb vegyel fel tulajdonost.");
-                break;
-            }
+
+
+            case 3:{
+                if (!db || db->owner_cnt == 0) {
+                    puts("Nincs egy tulajdonos sem a rendszerben, elobb vegyel fel tulajdonost.");
+                    break;
+                }
 
                 /* Tulaj kivalasztasa a kozos tulaj_valaszto modullal */
-                int idx = valassz_tulaj(db);
+                int idx = choose_owner(db);
                 if (idx < 0) {
                     /* Nincs talalat */
                     break;
                 }
 
-                Owner *tulaj = &db->tulajok[idx];
+                Owner *tulaj = &db->owners[idx];
                 printf("Kivalasztott tulajdonos: %s; %s\n", tulaj->name, tulaj->contact);
 
                 /* Allatok beolvasasa fajlbol */
@@ -449,74 +449,74 @@ static void levag_ujonsor(char *s) {
                 free(allatok);
                 break;
             }
-                
+
                 break;
 
             case 4: {int allat_db = 0;
-            Animal *allatok = allat_bet(&allat_db);
-            if (!allatok && allat_db > 0) {
-                puts("Nem sikerult beolvasni az allatok fajljat.");
-                break;
-            }
-            if (allat_db == 0) {
-                puts("Nincs egy allat sem a rendszerben.");
-                free(allatok);
-                break;
-            }
+                Animal *allatok = allat_bet(&allat_db);
+                if (!allatok && allat_db > 0) {
+                    puts("Nem sikerult beolvasni az allatok fajljat.");
+                    break;
+                }
+                if (allat_db == 0) {
+                    puts("Nincs egy allat sem a rendszerben.");
+                    free(allatok);
+                    break;
+                }
 
-            /*  nevreszlet keresese */
-            char minta[101];
-            printf("Keresett nev vagy nevreszlet: ");
-            if (!fgets(minta, sizeof(minta), stdin)) {
-                puts("Beolvasasi hiba");
-                free(allatok);
-                break;
-            }
-            levag_ujonsor(minta);
-            if (!minta[0]) {
-                puts("Nevreszlet kotelezo.");
-                free(allatok);
-                break;
-            }
+                /*  nevreszlet keresese */
+                char minta[101];
+                printf("Keresett nev vagy nevreszlet: ");
+                if (!fgets(minta, sizeof(minta), stdin)) {
+                    puts("Beolvasasi hiba");
+                    free(allatok);
+                    break;
+                }
+                levag_ujonsor(minta);
+                if (!minta[0]) {
+                    puts("Nevreszlet kotelezo.");
+                    free(allatok);
+                    break;
+                }
 
-            /* Kereses + kiiras tulajjal egyutt */
-            int talalt = 0;
-            for (int i = 0; i < allat_db; ++i) {
-                if (strstr(allatok[i].nev, minta) != NULL) {
+                /* Kereses + kiiras tulajjal egyutt */
+                int talalt = 0;
+                for (int i = 0; i < allat_db; ++i) {
+                    if (strstr(allatok[i].nev, minta) != NULL) {
 
-                    /* Megprobaljuk kikeresni a tulaj nevet/elerhetoseget is */
-                    const char *tulajnev  = "(ismeretlen tulaj)";
-                    const char *tulajeler = "";
-                    if (db && db->tulajok && db->tulaj_db > 0) {
-                        for (int j = 0; j < db->tulaj_db; ++j) {
-                            if (db->tulajok[j].id == allatok[i].owner_id) {
-                                tulajnev  = db->tulajok[j].name;
-                                tulajeler = db->tulajok[j].contact;
-                                break;
+                        /* Megprobaljuk kikeresni a tulaj nevet/elerhetoseget is */
+                        const char *tulajnev  = "(ismeretlen tulaj)";
+                        const char *tulajeler = "";
+                        if (db && db->owners && db->owner_cnt > 0) {
+                            for (int j = 0; j < db->owner_cnt; ++j) {
+                                if (db->owners[j].id == allatok[i].owner_id) {
+                                    tulajnev  = db->owners[j].name;
+                                    tulajeler = db->owners[j].contact;
+                                    break;
+                                }
                             }
                         }
+
+                        printf("Nev=%s; Fajta=%s; Szuletesi datum=%s; Oltas=%s; Tulaj=%s; Elerhetoseg=%s\n",
+                               allatok[i].nev,
+                               allatok[i].fajta,
+                               allatok[i].szul,
+                               allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)",
+                               tulajnev,
+                               tulajeler);
+
+                        ++talalt;
                     }
-
-                    printf("Nev=%s; Fajta=%s; Szuletesi datum=%s; Oltas=%s; Tulaj=%s; Elerhetoseg=%s\n",
-                           allatok[i].nev,
-                           allatok[i].fajta,
-                           allatok[i].szul,
-                           allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)",
-                           tulajnev,
-                           tulajeler);
-
-                    ++talalt;
                 }
+
+                if (!talalt) {
+                    puts("Nincs talalat.");
+                }
+
+                free(allatok);
+                break;
             }
 
-            if (!talalt) {
-                puts("Nincs talalat.");
-            }
-
-            free(allatok);
-            break;
-        }
-               
                 break;
 
             case 5: {
@@ -553,159 +553,159 @@ static void levag_ujonsor(char *s) {
                     free(allatok);
                     free(vizsg);
                     break;
-                int darab = 0;
-                for (int i = 0; i < allat_db; ++i){
-                    if (strstr(allatok[i].nev, minta) != NULL){
-                        printf("%d) %s; %s; %s; %s", ++darab, allatok[i].nev, allatok[i].fajta, allatok[i].szul, allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)");
+                    int darab = 0;
+                    for (int i = 0; i < allat_db; ++i){
+                        if (strstr(allatok[i].nev, minta) != NULL){
+                            printf("%d) %s; %s; %s; %s", ++darab, allatok[i].nev, allatok[i].fajta, allatok[i].szul, allatok[i].oltas[0] ? allatok[i].oltas : "(nincs oltas)");
+                        }
                     }
-                }
-                if (darab == 0){
-                    puts("Nincs talalat");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                /* Választás a találtak közül*/
-                printf("Melyik allattal dolgozzunk? (1..%d, 0 = megsem): ", darab);
-                int kiv = 0;
-                if (scanf("%d", &kiv) != 1){
+                    if (darab == 0){
+                        puts("Nincs talalat");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+                    /* Választás a találtak közül*/
+                    printf("Melyik allattal dolgozzunk? (1..%d, 0 = megsem): ", darab);
+                    int kiv = 0;
+                    if (scanf("%d", &kiv) != 1){
+                        int c;
+                        while((c = getchar()) != '\n' && c != EOF){}
+                        puts("Beolvasasi hiba");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
                     int c;
-                    while((c = getchar()) != '\n' && c != EOF){}
-                    puts("Beolvasasi hiba");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                int c;
-                while ((c = getchar()) != '\n' && c != EOF){}
-                if (kiv == 0){
-                    puts("Megsem");
-                    free(vizsg);
-                    free(allatok);
-                    break;
-                }
-                if (kiv < 1 || kiv > darab){
-                    puts("Ervenytelen sorszam");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                int idx = -1;
-                int sorszam = 0;
-                for (int i = 0; i < allat_db; ++i){
-                    if (strstr(allatok[i].nev, minta) != NULL){
-                        ++sorszam;
-                        if (sorszam == kiv) {
-                            idx = i;
-                            break;
+                    while ((c = getchar()) != '\n' && c != EOF){}
+                    if (kiv == 0){
+                        puts("Megsem");
+                        free(vizsg);
+                        free(allatok);
+                        break;
+                    }
+                    if (kiv < 1 || kiv > darab){
+                        puts("Ervenytelen sorszam");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+                    int idx = -1;
+                    int sorszam = 0;
+                    for (int i = 0; i < allat_db; ++i){
+                        if (strstr(allatok[i].nev, minta) != NULL){
+                            ++sorszam;
+                            if (sorszam == kiv) {
+                                idx = i;
+                                break;
+                            }
                         }
                     }
-                }
-                if (idx < 0) {
-                    puts("Kivalasztasi hiba");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                Animal *a = &allatok[idx];
-                int torlendo_id = a->id;
-
-                /* Előnézet */
-                printf("\nTorolni keszulod az alabbi allatot:\n");
-                printf("%s; %s; %s; %s", a->nev, a->fajta, a->szul, a->oltas);
-                printf("\nHozzatartozo vizsgalatok:\n");
-                int volt_vizsg = 0;
-                for (int i = 0; i < viz_db; ++i){
-                    if (vizsg && vizsg[i].allat_id == torlendo_id){
-                        printf("Datum = %s; Leiras = %s\n", vizsg[i].datum, vizsg[i].leiras);
-                        volt_vizsg = 1;
+                    if (idx < 0) {
+                        puts("Kivalasztasi hiba");
+                        free(allatok);
+                        free(vizsg);
+                        break;
                     }
-                }
-                if (!volt_vizsg){
-                    puts("Ehhez az állathoz nem volt vizsgalat");
-                }
-                /* Megerosites */
-                char valasz [8];
-                printf("\nBiztosan toroljem az allatot ES az osszes hozza tartozo vizsgalatot? (I/N): ");
-                if (!fgets(valasz, sizeof(valasz), stdin)){
-                    puts("Megszakitva");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                levag_ujonsor(valasz);
-                if (!(valasz[0] == 'I' || valasz[0] == 'i')){
-                    puts("Megsem");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                /* Csúsztatás */
-                for (int i = idx + 1; i < allat_db; ++i){
-                    allatok[i - 1] = allatok[i];
-                }
-                allat_db--;
-                
-                /* Vizsgálatok törlése */
-                int uj_viz_db = 0;
-                if (viz_db > 0 && vizsg){
+                    Animal *a = &allatok[idx];
+                    int torlendo_id = a->id;
+
+                    /* Előnézet */
+                    printf("\nTorolni keszulod az alabbi allatot:\n");
+                    printf("%s; %s; %s; %s", a->nev, a->fajta, a->szul, a->oltas);
+                    printf("\nHozzatartozo vizsgalatok:\n");
+                    int volt_vizsg = 0;
                     for (int i = 0; i < viz_db; ++i){
-                        if (vizsg[i].allat_id != torlendo_id){
-                            vizsg[uj_viz_db++] = vizsg[i];
+                        if (vizsg && vizsg[i].allat_id == torlendo_id){
+                            printf("Datum = %s; Leiras = %s\n", vizsg[i].datum, vizsg[i].leiras);
+                            volt_vizsg = 1;
                         }
                     }
-                }
-                /* Állatok file újraírása*/
-                FILE *fa = fopen(FILE_AL, "w");
-                if(!fa){
-                    puts("Nem sikerult megnyitni a filet irasra. ");
-                    free(allatok);
-                    free(vizsg);
-                    break;
-                }
-                for (int i = 0; i < allat_db; ++i){
-                    fprintf(fa, "%d;%d;%s;%s;%s;%s\n",
-                        allatok[i].id,
-                        allatok[i].owner_id,
-                        allatok[i].nev,
-                        allatok[i].fajta,
-                        allatok[i].szul,
-                        allatok[i].oltas);
+                    if (!volt_vizsg){
+                        puts("Ehhez az állathoz nem volt vizsgalat");
                     }
-                fclose(fa);
+                    /* Megerosites */
+                    char valasz [8];
+                    printf("\nBiztosan toroljem az allatot ES az osszes hozza tartozo vizsgalatot? (I/N): ");
+                    if (!fgets(valasz, sizeof(valasz), stdin)){
+                        puts("Megszakitva");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+                    levag_ujonsor(valasz);
+                    if (!(valasz[0] == 'I' || valasz[0] == 'i')){
+                        puts("Megsem");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+                    /* Csúsztatás */
+                    for (int i = idx + 1; i < allat_db; ++i){
+                        allatok[i - 1] = allatok[i];
+                    }
+                    allat_db--;
 
-                /* Vizsgálatok file fájl újraírása*/
-                
-                FILE *fv = fopen(FILE_LAT, "w");
-                if (!fv){
-                    puts("Nem sikerult megnyitni a filet irasra. ");
+                    /* Vizsgálatok törlése */
+                    int uj_viz_db = 0;
+                    if (viz_db > 0 && vizsg){
+                        for (int i = 0; i < viz_db; ++i){
+                            if (vizsg[i].allat_id != torlendo_id){
+                                vizsg[uj_viz_db++] = vizsg[i];
+                            }
+                        }
+                    }
+                    /* Állatok file újraírása*/
+                    FILE *fa = fopen(FILE_AL, "w");
+                    if(!fa){
+                        puts("Nem sikerult megnyitni a filet irasra. ");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+                    for (int i = 0; i < allat_db; ++i){
+                        fprintf(fa, "%d;%d;%s;%s;%s;%s\n",
+                            allatok[i].id,
+                            allatok[i].owner_id,
+                            allatok[i].nev,
+                            allatok[i].fajta,
+                            allatok[i].szul,
+                            allatok[i].oltas);
+                    }
+                    fclose(fa);
+
+                    /* Vizsgálatok file fájl újraírása*/
+
+                    FILE *fv = fopen(FILE_LAT, "w");
+                    if (!fv){
+                        puts("Nem sikerult megnyitni a filet irasra. ");
+                        free(allatok);
+                        free(vizsg);
+                        break;
+                    }
+
+                    for (int i = 0; i < uj_viz_db; ++i){
+                        fprintf(fv, "%d;%d;%s;%s\n", vizsg[i].id, vizsg[i].allat_id, vizsg[i].datum, vizsg[i].leiras);
+                    }
+                    fclose(fv);
                     free(allatok);
                     free(vizsg);
+                    puts("Allat es minden hozzatartozo vizsgalat torolve");
                     break;
+
+
+
+
                 }
-                
-                for (int i = 0; i < uj_viz_db; ++i){
-                    fprintf(fv, "%d;%d;%s;%s\n", vizsg[i].id, vizsg[i].allat_id, vizsg[i].datum, vizsg[i].leiras);
-                }
-                fclose(fv);
-                free(allatok);
-                free(vizsg);
-                puts("Allat es minden hozzatartozo vizsgalat torolve");
-                break;
-
-            
-
-
-            }
-            case 0:
+                case 0:
                 puts("Visszalépés a főmenübe...");
                 break;
 
-            default:
+                default:
                 puts("Ismeretlen menüpont, próbáld újra.");
                 break;
-        }
+            }
 
+        }
     } while (valasztas != 0);
 }
-

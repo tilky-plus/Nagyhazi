@@ -9,10 +9,10 @@ typedef struct Owner {
 } Owner;
 
 typedef struct DB {
-    Owner *tulajok;
-    int tulaj_db;
+    Owner *owners;
+    int owner_cnt;
 } DB;
 
-Owner *tulajd_bet(int *out_db);
+Owner *owner_file_load(int *dst);
 
 #endif

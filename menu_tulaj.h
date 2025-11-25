@@ -3,6 +3,6 @@
 
 #include "owners.h"
 
-void menu_tulajdonosok(DB *db);
+void menu_owners(DB *db);
 
 #endif
