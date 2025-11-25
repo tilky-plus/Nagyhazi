@@ -18,7 +18,8 @@ int main(void) {
         printf("\n=== Fomenu ===\n");
         printf("1) Tulajdonosok kezelese\n");
         printf("0) Kilepes\n");
-        printf("Valasztas: ");
+        printf("==============\n");
+        printf("\nValasztas: ");
 
         valasztas = input_number();
 

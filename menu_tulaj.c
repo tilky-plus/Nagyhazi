@@ -37,7 +37,7 @@ void add_owner(DB *db) {
     snprintf(db->owners[db->owner_cnt].contact, sizeof(db->owners[db->owner_cnt].contact), "%s", contact);
     db->owner_cnt++;
 
-    if (!owner_quicksave(next_id, name, contact))
+    if (!owner_file_append(next_id, name, contact))
         return;
 
     printf("Kesz: felvettuk (ID=%d).\n", next_id);
@@ -191,7 +191,8 @@ void menu_owners(DB *db) {
         printf("4) Tulajdonos adatainak modositasa\n");
         printf("5) Tulajdonos torlese\n");
         printf("0) Vissza a fomenube\n");
-        printf("Valasztas: ");
+        printf("-----------------------------\n");
+        printf("\nValasztas: ");
 
         int input = input_number();
 

@@ -1,5 +1,8 @@
 #include "input.h"
 
+#include <string.h>
+
+/* Asks for a number from the usr. */
 int input_number() {
     int number = -1; // The default value is -1.
     scanf("%d", &number);
@@ -11,19 +14,24 @@ int input_number() {
     return number;
 }
 
-void input_str(const char *msg, char *buf, int size) {
+/* Asks for a string with a message and puts it into buf. */
+int input_str(const char *msg, char *buf, int size) {
     if (msg)
         printf("%s", msg);
 
     if (!fgets(buf, size, stdin)) {
         puts("Beolvasasi hiba (stdin)");
-        return;
+        return 1;
     }
 
-    while (size && (buf[size - 1] == '\n' || buf[size - 1] == '\r'))
-        buf[--size] = '\0';
+    // This **could** work, but there is a more elegant way.
+    // while (size && (buf[size - 1] == '\n' || buf[size - 1] == '\r')) buf[--size] = '\0';
+
+    buf[strcspn(buf, "\r\n")] = '\0';
+    return 0;
 }
 
+/* Confirmation input from the user. */
 bool simple_yesno(const char *msg) {
     char valasz[8];
 
@@ -38,8 +46,8 @@ bool simple_yesno(const char *msg) {
     return true;
 }
 
+/* Ask the user to choose from a range of results. */
 int choose_result(int min, int max) {
-    /* Ask the user to choose a result */
     printf("Melyiket valasszam? (%d..%d, 0 = megsem): ", min, max);
 
     int kiv = input_number();

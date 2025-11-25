@@ -1,5 +1,6 @@
 #include "files.h"
 
+/* Rewrites the entire FILE_TL. */
 bool owner_file_rewrite(DB *db) {
     FILE *fp = fopen(FILE_TL, "w");
 
@@ -15,8 +16,8 @@ bool owner_file_rewrite(DB *db) {
     return true;
 }
 
-
-bool owner_quicksave(int id, char* name, char *contact) {
+/* Appends to FILE_TL */
+bool owner_file_append(int id, char* name, char *contact) {
     FILE *fp = fopen(FILE_TL, "a");
     if (!fp) {
         puts("Nem sikerult irni a fileba (memoriaban benne van).");
