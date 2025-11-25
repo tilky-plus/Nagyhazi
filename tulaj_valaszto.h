@@ -5,6 +5,6 @@
 
 /* Mivel tulajdonos keresést több helyen is használunk, 
 ezért jó öletnek tartottam külön függvénybe kirendezni*/
-int valassz_tulaj(DB *db);
+int choose_owner(DB *db);
 
 #endif

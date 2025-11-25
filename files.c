@@ -8,8 +8,8 @@ bool owner_file_rewrite(DB *db) {
         return false;
     }
 
-    for (int i = 0; i < db->tulaj_db; ++i)
-        fprintf(fp, "%d;%s;%s\n", db->tulajok[i].id, db->tulajok[i].name, db->tulajok[i].contact);
+    for (int i = 0; i < db->owner_cnt; ++i)
+        fprintf(fp, "%d;%s;%s\n", db->owners[i].id, db->owners[i].name, db->owners[i].contact);
 
     fclose(fp);
     return true;

@@ -9,8 +9,8 @@
 
 int main(void) {
     DB db;
-    db.tulajok = NULL;
-    db.tulaj_db = 0;
+    db.owners = NULL;
+    db.owner_cnt = 0;
 
     int valasztas;
 
@@ -27,7 +27,7 @@ int main(void) {
                 printf("Kilepes...\n");
                 break;
             case 1:
-                menu_tulajdonosok(&db);
+                menu_owners(&db);
                 break;
             default:
                 printf("Ervenytelen opcio\n");
@@ -35,6 +35,6 @@ int main(void) {
         }
     } while (valasztas != 0);
 
-    free(db.tulajok);
+    free(db.owners);
     return 0;
 }

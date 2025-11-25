@@ -48,16 +48,16 @@ static void levag_ujonsor(char *s) {
         switch (valasztas) {
             /* Új állat felvétele */
             case 1:
-                if (!db || db->tulaj_db == 0){
+                if (!db || db->owner_cnt == 0){
                     puts("Nincs egy tulajdonos sem a rendszerben, először vegyél fel tulajdonost");
                     break;
                 }
                 /* Tulaj kiválasztása*/
-                int idx = valassz_tulaj(db);
+                int idx = choose_owner(db);
                 if (idx < 0){
                     break;
                 }
-                Owner *tulaj = &db->tulajok[idx];
+                Owner *tulaj = &db->owners[idx];
                 printf("Kivalasztott tulajdonos: %s; %s\n", tulaj->name, tulaj->contact);
 
                 /* Állatok beolvasása file-ból */
@@ -398,19 +398,19 @@ static void levag_ujonsor(char *s) {
 
 
             case 3:{
-                if (!db || db->tulaj_db == 0) {
+                if (!db || db->owner_cnt == 0) {
                     puts("Nincs egy tulajdonos sem a rendszerben, elobb vegyel fel tulajdonost.");
                     break;
                 }
 
                 /* Tulaj kivalasztasa a kozos tulaj_valaszto modullal */
-                int idx = valassz_tulaj(db);
+                int idx = choose_owner(db);
                 if (idx < 0) {
                     /* Nincs talalat */
                     break;
                 }
 
-                Owner *tulaj = &db->tulajok[idx];
+                Owner *tulaj = &db->owners[idx];
                 printf("Kivalasztott tulajdonos: %s; %s\n", tulaj->name, tulaj->contact);
 
                 /* Allatok beolvasasa fajlbol */
@@ -487,11 +487,11 @@ static void levag_ujonsor(char *s) {
                         /* Megprobaljuk kikeresni a tulaj nevet/elerhetoseget is */
                         const char *tulajnev  = "(ismeretlen tulaj)";
                         const char *tulajeler = "";
-                        if (db && db->tulajok && db->tulaj_db > 0) {
-                            for (int j = 0; j < db->tulaj_db; ++j) {
-                                if (db->tulajok[j].id == allatok[i].owner_id) {
-                                    tulajnev  = db->tulajok[j].name;
-                                    tulajeler = db->tulajok[j].contact;
+                        if (db && db->owners && db->owner_cnt > 0) {
+                            for (int j = 0; j < db->owner_cnt; ++j) {
+                                if (db->owners[j].id == allatok[i].owner_id) {
+                                    tulajnev  = db->owners[j].name;
+                                    tulajeler = db->owners[j].contact;
                                     break;
                                 }
                             }

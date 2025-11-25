@@ -37,3 +37,17 @@ bool simple_yesno(const char *msg) {
 
     return true;
 }
+
+int choose_result(int min, int max) {
+    /* Ask the user to choose a result */
+    printf("Melyiket valasszam? (%d..%d, 0 = megsem): ", min, max);
+
+    int kiv = input_number();
+
+    if (kiv < min || kiv > max) {
+        puts("Megsem.");
+        return -1;
+    }
+
+    return kiv;
+}

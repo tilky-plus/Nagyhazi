@@ -6,53 +6,42 @@
 #include "tulaj_valaszto.h"
 #include "debugmalloc.h"
 
-int valassz_tulaj(DB *db) {
-    if (!db || db->tulaj_db == 0) {
+int choose_owner(DB *db) {
+    if (!db || db->owner_cnt == 0) {
         puts("Nincs egy tulajdonos sem a rendszerben.");
         return -1;
     }
 
-    char minta[101];
-    input_str("Keresett nev vagy nevreszlet: ", minta, sizeof(minta));
+    char term[101];
+    input_str("Keresett nev vagy nevreszlet: ", term, sizeof(term));
 
-    if (!minta[0]) {
+    if (!term[0]) {
         puts("Ures minta, nem tudok keresni.");
         return -1;
     }
 
-    /* találatok kiírása, sorszámozás */
-    int darab = 0;
-    for (int i = 0; i < db->tulaj_db; ++i) {
-        if (strstr(db->tulajok[i].name, minta) != NULL) {
-            printf("%d) ID=%d; %s; %s\n",
-                   ++darab,
-                   db->tulajok[i].id,
-                   db->tulajok[i].name,
-                   db->tulajok[i].contact);
+    /* Print the results */
+    int res_cnt = 0;
+    for (int i = 0; i < db->owner_cnt; ++i) {
+        if (strstr(db->owners[i].name, term) != NULL) {
+            printf("%d) ID=%d; %s; %s\n", ++res_cnt, db->owners[i].id, db->owners[i].name, db->owners[i].contact);
         }
     }
 
-    if (darab == 0) {
+    if (res_cnt == 0) {
         puts("Nincs talalat.");
         return -1;
     }
 
-    /* melyik találatot válasszuk? */
-    printf("Melyiket valasszam? (1..%d, 0 = megse): ", darab);
+    int kiv = choose_result(1, db->owner_cnt);
 
-    int kiv = input_number();
-    if (kiv <= 0 || kiv > darab) {
-        puts("Megse.");
-        return -1;
-    }
-
-    /* visszakeressük az EREDETI indexet a tömbben */
+    /* Search the real index of the selection in the src database. */
     int sorszam = 0;
-    for (int i = 0; i < db->tulaj_db; ++i) {
-        if (strstr(db->tulajok[i].name, minta) != NULL) {
+    for (int i = 0; i < db->owner_cnt; ++i) {
+        if (strstr(db->owners[i].name, term) != NULL) {
             ++sorszam;
             if (sorszam == kiv) {
-                return i;  // <-- EZ AZ INDEX
+                return i;  // <-- This is the index
             }
         }
     }
