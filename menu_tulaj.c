@@ -3,6 +3,7 @@
 #include <string.h>
 #include "owners.h"
 #include "storage.h"
+#include "files.h"
 #include "menu_tulaj.h"
 #include "tulaj_valaszto.h"
 #include "debugmalloc.h"
@@ -11,7 +12,7 @@
 void menu_tulajdonosok(DB *db) {
     int valasztas;
 
-    for (;;) {
+    while (true) {
         printf("\n--- Tulajdonosok kezelese ---\n");
         printf("1) Uj tulajdonos felvitele\n");
         printf("2) Tulajdonos keresese\n");
@@ -56,14 +57,8 @@ void menu_tulajdonosok(DB *db) {
                 snprintf(db->tulajok[db->tulaj_db].contact, sizeof(db->tulajok[db->tulaj_db].contact), "%s", eler);
                 db->tulaj_db++;
 
-                /* Azonnali mentes: hozzaappendeljuk a fajl vegere */
-                FILE *fp = fopen(FILE_TL, "a");
-                if (!fp) {
-                    puts("Nem sikerult irni a fileba (memoriaban benne van).");
+                if (!owner_quicksave(kov_id, nev, eler))
                     break;
-                }
-                fprintf(fp, "%d;%s;%s\n", kov_id, nev, eler);
-                fclose(fp);
 
                 printf("Kesz: felvettuk (ID=%d).\n", kov_id);
                 }
@@ -82,10 +77,7 @@ void menu_tulajdonosok(DB *db) {
                 int talalatok = 0;
                 for (int i = 0; i < db->tulaj_db; ++i) {
                     if (strstr(db->tulajok[i].name, minta) != NULL) {
-                        printf("%d; %s; %s\n",
-                               db->tulajok[i].id,
-                               db->tulajok[i].name,
-                               db->tulajok[i].contact);
+                        printf("%d; %s; %s\n", db->tulajok[i].id, db->tulajok[i].name, db->tulajok[i].contact);
                         talalatok++;
                     }
                 }
@@ -100,10 +92,7 @@ void menu_tulajdonosok(DB *db) {
                     break;
                 }
                 for (int i = 0; i < db->tulaj_db; ++i) {
-                    printf("%d; %s; %s\n",
-                           db->tulajok[i].id,
-                           db->tulajok[i].name,
-                           db->tulajok[i].contact);
+                    printf("%d; %s; %s\n", db->tulajok[i].id, db->tulajok[i].name, db->tulajok[i].contact);
                 }
                 break;
 
@@ -172,19 +161,8 @@ void menu_tulajdonosok(DB *db) {
                     snprintf(t->contact, sizeof(t->contact), "%s", uj);
                 }
 
-                /* Teljes fajl ujrairasa */
-                FILE *fp = fopen(FILE_TL, "w");
-                if (!fp) {
-                    puts("Nem sikerult megnyitni a fajlt irasra");
+                if (!owner_file_rewrite(db))
                     break;
-                }
-                for (int i = 0; i < db->tulaj_db; ++i) {
-                    fprintf(fp, "%d;%s;%s\n",
-                            db->tulajok[i].id,
-                            db->tulajok[i].name,
-                            db->tulajok[i].contact);
-                }
-                fclose(fp);
 
                 puts("Mentes kesz");
                 break;
@@ -226,19 +204,7 @@ void menu_tulajdonosok(DB *db) {
                     }
                 }
 
-                /* Teljes fajl ujrairasa */
-                FILE *fp = fopen(FILE_TL, "w");
-                if (!fp) {
-                    puts("Nem sikerult megnyitni a filet irasra.");
-                    break;
-                }
-                for (int i = 0; i < db->tulaj_db; ++i) {
-                    fprintf(fp, "%d;%s;%s\n",
-                            db->tulajok[i].id,
-                            db->tulajok[i].name,
-                            db->tulajok[i].contact);
-                }
-                fclose(fp);
+                owner_file_rewrite(db);
 
                 puts("Torles kesz.");
                 break;
